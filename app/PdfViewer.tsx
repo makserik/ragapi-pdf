@@ -14,14 +14,16 @@ const options = {
     standardFontDataUrl: '/standard_fonts/',
 };
 
-type PDFFile = string | File | null;
+type PDFFile = File | undefined;
 
 export default function PdfViewer() {
-    const [file, setFile] = useState<PDFFile>(null);
-    const [rawFile, setRawFile] = useState<File>(null);
-    const [numPages, setNumPages] = useState<number>();
+    const [file, setFile] = useState<PDFFile>();
+    const [rawFile, setRawFile] = useState<File | null>(null);
+    const [numPages, setNumPages] = useState<number>(1);
     const [page, setPage] = useState<number>(1);
     const [question, setQuestion] = useState<string>('');
+    const [RagApiKey, setRagApiKey] = useState<string>('');
+    const [OpenaiKey, setOpenaiKey] = useState<string>('');
     const [questionHistory, setQuestionHistory] = useState<string[]>([]);
     const [answer, setAnswer] = useState<string>('');
 
@@ -48,8 +50,9 @@ export default function PdfViewer() {
         }
     }
 
-    function onDocumentLoadSuccess({ numPages: nextNumPages }: PDFDocumentProxy): void {
-        setNumPages(nextNumPages);
+    function onDocumentLoadSuccess(pdf: PDFDocumentProxy): void {
+        const { numPages } = pdf;
+        setNumPages(numPages);
     }
 
     function goToNextPage() {
@@ -66,14 +69,15 @@ export default function PdfViewer() {
 
     async function fetchAnswerFromAPI(question: string) {
         try {
+            if (rawFile === null) return "Can`t use without a file"
             const formData = new FormData();
             formData.append('file', rawFile)
             formData.append('question', question)
-            formData.append('openai_key', "YOUR_OPENAI_KEY")
+            formData.append('openai_key', OpenaiKey)
             const response = await fetch('https://api.ragapi.org/question', {
                 method: 'POST',
                 headers: {
-                    Authorization: 'Bearer YOUR_RAGAPI_KEY',
+                    Authorization: `Bearer ${RagApiKey}`,
                 },
                 body: formData
             });
@@ -120,9 +124,33 @@ export default function PdfViewer() {
                     </button>
                 </div>
                 <div className="Example__container__document">
-                    <Document file={file} onLoadSuccess={onDocumentLoadSuccess} options={options}>
-                        <Page key={`page_${page}`} pageNumber={page} />
-                    </Document>
+                    {file ? (
+                        //@ts-ignore
+                        <Document file={file} onLoadSuccess={onDocumentLoadSuccess} options={options}>
+                            <Page key={`page_${page}`} pageNumber={page} />
+                        </Document>
+                    ) : (
+                        // Render something else or provide a message when 'file' is null or undefined
+                        <div>No file selected</div>
+                    )}
+                </div>
+                <div className="mt-4 mb-4">
+                    <input
+                        type="text"
+                        placeholder="RAG_API_KEY"
+                        value={tempQuestion}
+                        onChange={(e) => setRagApiKey(e.target.value)}
+                        className="w-full border p-2"
+                    />
+                </div>
+                <div className="mt-4 mb-4">
+                    <input
+                        type="text"
+                        placeholder="OPENAI_KEY"
+                        value={tempQuestion}
+                        onChange={(e) => setOpenaiKey(e.target.value)}
+                        className="w-full border p-2"
+                    />
                 </div>
                 <div className="mt-4 mb-4">
                     <input
