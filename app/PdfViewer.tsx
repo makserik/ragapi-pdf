@@ -138,7 +138,7 @@ export default function PdfViewer() {
                     <input
                         type="text"
                         placeholder="RAG_API_KEY"
-                        value={tempQuestion}
+                        value={RagApiKey}
                         onChange={(e) => setRagApiKey(e.target.value)}
                         className="w-full border p-2"
                     />
@@ -147,7 +147,7 @@ export default function PdfViewer() {
                     <input
                         type="text"
                         placeholder="OPENAI_KEY"
-                        value={tempQuestion}
+                        value={OpenaiKey}
                         onChange={(e) => setOpenaiKey(e.target.value)}
                         className="w-full border p-2"
                     />
